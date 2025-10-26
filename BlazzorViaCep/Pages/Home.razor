@@ -1,0 +1,106 @@
+﻿@page "/"
+@using BlazzorViaCep.models
+
+@using blazorViaCep.models
+
+@inject HttpClient http
+
+<PageTitle>ViaCep API</PageTitle>
+
+<h1>ViaCep API</h1>
+<div class="form-group"`>
+    <label for="cep-input">
+        <input type="text" class="form-control" id="cepInput" @bind="cep" placeholder="digite um cep:"/>
+    </label>
+</div>
+<button class="btn btn-primary mt-2" @onclick="ConsultarCep">
+    consultar API
+</button>
+
+@if(endereco != null)
+{
+    <h3>
+    Resultado da API:
+    </h3>
+
+    <table class="table table-border">
+     <tbody>
+         <tr>
+            <TD><strong>
+                CEP:
+            </strong>
+            </TD>
+            <td>
+                @endereco.cep
+            </td>
+         </tr>
+
+         <tr>
+            <TD><strong>
+                RUA:
+            </strong>
+            </TD>
+            <td>
+                @endereco.logradouro
+            </td>
+         </tr>
+
+         <tr>
+            <TD><strong>
+                BAIRRO:
+            </strong>
+            </TD>
+            <td>
+                @endereco.bairro
+            </td>
+         </tr>
+
+         <tr>
+            <TD><strong>
+                Cidade:
+            </strong>
+            </TD>
+            <td>
+                @endereco.localidade
+            </td>
+         </tr>
+     </tbody>
+    </table>
+}
+
+@code{
+    private string cep;
+    private Endereco endereco;
+    private string erroMensagem;
+    private async Task ConsultarCep()
+    {
+        erroMensagem = string.Empty;
+        endereco = null;
+        if (string.IsNullOrEmpty(cep))
+        {
+            erroMensagem = "Por favor digite um cep";
+        }
+        string cepFormatado =  new string (cep.Where(char.IsDigit).ToArray());
+        if (cepFormatado.Length != 8)
+        {
+            erroMensagem = "o cep precisa conter 8 digito...";
+            return;
+        }
+
+        try{
+            string url =$"https://viacep.com.br/ws/01001000/json/";
+            endereco = await http.GetFromJsonAsync<endereço>(url);
+
+            if (endereco.cep == null)
+            {
+                erroMensagem = "cep não encontrado ou invalido";
+                endereco = null;
+            }
+        }
+
+        catch(Exception e)
+        {
+            erroMensagem = $"erro ao conectar no API:\n {e.Message}.";
+        }
+    }
+}
